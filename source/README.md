@@ -1,0 +1,1 @@
+# blog supported by [Hexo](https://hexo.io/)
