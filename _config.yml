@@ -109,3 +109,7 @@ deploy:
   type: git
   repo: https://github.com/DerivativeMarmot/blog.git
   branch: gh-pages
+# deploy:
+#   type: git
+#   repo: https://github.com/DerivativeMarmot/blog-test.git
+#   branch: main
