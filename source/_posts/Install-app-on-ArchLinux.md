@@ -330,71 +330,49 @@ add
 ```
 
 
-# AriaNg + aria2 in docker （2022/10/22 更新）
+# AriaNg + aria2 （2023/09/16 更新）
 
-## docker-compose 部署
-```yml
-version: "3.8"
+## 简介
+AriaNg 是 aria2 的 web-ui
 
-services:
+## 下载 AriaNg 静态页面
 
-  Aria2-Pro:
-    container_name: aria2-pro
-    image: p3terx/aria2-pro:latest
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - UMASK_SET=022
-      - RPC_SECRET=<一个很长的随机字符串>
-      - RPC_PORT=6800
-      # - LISTEN_PORT=6888
-      - DISK_CACHE=128M
-      - IPV6_MODE=false
-      - UPDATE_TRACKERS=true
-      - CUSTOM_TRACKER_URL=
-      - TZ=Asia/Shanghai
-    volumes:
-      - ./config:/config
-      - ./downloads:/downloads
-# If you use host network mode, then no port mapping is required.
-# This is the easiest way to use IPv6 networks.
-#    network_mode: host
-    network_mode: bridge
-    ports:
-      - 6800:6800
-    #  - 6888:6888
-    #  - 6888:6888/udp
-    restart: unless-stopped
-# Since Aria2 will continue to generate logs, limit the log size to 1M to prevent your hard disk from running out of space.
-    logging:
-      driver: json-file
-      options:
-        max-size: 1m
+[AriaNg Releases](https://github.com/mayswind/AriaNg/releases)
 
-# AriaNg is just a static web page, usually you only need to deploy on a single host.
-  AriaNg:
-    container_name: ariang
-    image: p3terx/ariang:latest
-    command: --port 6880 --ipv6
-    #    network_mode: host
-    network_mode: bridge
-    ports:
-      - 6880:6880
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: 1m
+## aria2 配置文件
+```shell
+> mkdir -p ~/.aria2
+> touch .aria2/aria2.session # 没有 session 文件会报错
+> vim .aria2/aria2.conf
+  ## 文件保存设置 ##
+
+  # 下载目录。可使用绝对路径或相对路径, 默认: 当前启动位置
+  dir=</path/to/downloads>
+
+  ## RPC 设置 ##
+
+  # 启用 JSON-RPC/XML-RPC 服务器, 默认:false
+  enable-rpc=true
+
+  # 接受所有远程请求, 默认:false
+  rpc-allow-origin-all=true
+
+  # 允许外部访问, 默认:false
+  rpc-listen-all=true
+
+  # RPC 监听端口, 默认:6800
+  rpc-listen-port=6800
+
+  # RPC 密钥 非必要
+  # rpc-secret=<随机字符串>
+
+  # RPC 服务 SSL/TLS 加密, 默认：false,  如果使用 https 需开启
+  # rpc-secure=true
+
+  # 在 RPC 服务中启用 SSL/TLS 加密时的证书文件(.pem/.crt)
+  # rpc-certificate=</path/to/fullchain.pem>
+  # rpc-private-key=</path/to/.aria2/privkey.pem>
 ```
-<div class="alert alert-warning">
-    <p class="alert-heading">
-        <b>注意:</b>
-    </p>
-    <div class="alert-body">
-        <p>如果有防火墙，需要打开 6800/tcp, 6880/tcp</p>
-        <p>如果有 bt 需求，则需要额外再开放 6888/tcp, 6888/udp；并取消 yml 中有关 6888 端口的注释</p>
-    </div>
-</div>
 
 ## 添加 https 证书
  - 启动后将生成配置文件
@@ -403,16 +381,29 @@ services:
   > sudo cp /etc/letsencrypt/<domain_name>/fullchain.pem .
   > sudo cp /etc/letsencrypt/<domain_name>/privkey.pem .
   > sudo chown $USER:$USER fullchain.pem privkey.pem
-  > vim config/aria2.conf
+  > chmod 400 fullchain.pem privkey.pem
+  > vim .aria2/aria2.conf
     rpc-secure=true
-    rpc-certificate=/config/fullchain.pem
-    rpc-certificate-key=/config/privkey.pem
+    rpc-certificate=/path/to/fullchain.pem
+    rpc-private-key=/path/to/privkey.pem
   ```
 
-## 连接 AriaNg 和 aria
- - 浏览器地址栏输入 ```<ip地址>:6880``` 进入 webui
- - AriaNg 设置 -> RPC -> 填写 Aria2 RPC 密钥（刚刚设置的 RPC_SECRET）-> 重新加载 AriaNg
- - AriaNg 状态变为 ```已连接```
+## 将 aria2 加入 systemd
+```shell
+> vim /lib/systemd/system/aria2.service
+  [Unit]
+  Description=Aria2 Service
+  After=network.target
+
+  [Service]
+  ExecStart=/usr/bin/aria2c --conf-path=</path/to/aria2.conf>
+
+  [Install]
+  WantedBy=default.target
+
+> sudo systemctl enable aria2
+> sudo systemctl start aria2
+```
 
 # Docker (2022/7/28 更新)
 
@@ -580,3 +571,5 @@ add-depend nodejs
 [nodejs-lts-gallium and nodejs are in conflict](https://bbs.archlinux.org/viewtopic.php?id=275264)
 
 [使用 HTTPS 连接 Aria2](https://tech.he-sb.top/posts/use-https-on-aria2/)
+
+[aria2.service](https://github.com/gutenye/systemd-units/blob/master/aria2/aria2.service)
