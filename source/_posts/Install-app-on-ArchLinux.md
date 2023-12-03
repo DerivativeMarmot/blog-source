@@ -468,16 +468,16 @@ services:
 docker
 ├── container1
 │	├── # 当前位置
-│	└── docker-compose.yaml
+│	└── docker-compose.yml
 │
 ├── container2
-│	└── docker-compose.yaml
+│	└── docker-compose.yml
 │
 └── container3
-	└── docker-compose.yaml
+	└── docker-compose.yml
 ```
 
-**同级目录存在 docker-compose.yaml 文件才可运行**
+**同级目录存在 docker-compose.yml 文件才可运行**
 
 ```shell
 > docker-compose up # 前台运行
