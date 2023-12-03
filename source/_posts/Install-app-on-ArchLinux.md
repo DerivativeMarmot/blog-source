@@ -557,6 +557,11 @@ add-depend nodejs
 - Tachiyomi 最大可支持同时连接三个 kmoga 服务器
 
 
+# NTFS-3G （2023/12/02 更新）
+
+## 简介
+用于在 Linux 上装载 NTFS 格式的硬盘。
+
 
 # 参考内容
 
